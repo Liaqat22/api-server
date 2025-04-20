@@ -18,6 +18,10 @@ export const register = async (req, res) => {
     // hashing the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRECT, {
+      expiresIn: "1d",
+    });
+
     //saving the user to database
     const user = new userModel({ name, email, password: hashedPassword });
     await user.save();
@@ -25,18 +29,15 @@ export const register = async (req, res) => {
       success: true,
       message: "User Register Successfully",
       user,
-    });
-    
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRECT, {
-      expiresIn: "1d",
+      token,
     });
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-      maxAge: 24 * 60 * 60 * 1000,
-    });
+    // res.cookie("token", token, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+    //   maxAge: 24 * 60 * 60 * 1000,
+    // });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
